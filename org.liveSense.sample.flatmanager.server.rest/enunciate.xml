@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<enunciate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://enunciate.codehaus.org/schemas/enunciate-1.25.xsd">
+
+	<modules>
+		<docs title="liveSense sample FlatManager"/>
+		<basic-app disabled="false" forceEnable="true"/>
+		<java-client disabled="false" disableCompile="false"/>
+		<xml disabled="false" forceEnable="true"/>
+		<jaxws-client disabled="false" forceEnable="true"/>
+		<jboss disabled="true" forceEnable="false"/>
+		<jaxws-ri disabled="true" forceEnable="false"/>
+		<jaxws-support disabled="true" forceEnable="false"/>
+		<csharp disabled="false"/>
+		<jersey disabled="true" forceEnable="false"/>
+		<obj-c disabled="false" forceEnable="true"/>
+		<cxf disabled="true" forceEnable="false" enableJaxws="false" enableJaxrs="false"/>
+		<c disabled="false" forceEnable="true"/>
+        <gwt disabled="true" rpcModuleName="" disableCompile="true" forceEnable="false">
+        </gwt>
+	</modules>
+
+</enunciate>

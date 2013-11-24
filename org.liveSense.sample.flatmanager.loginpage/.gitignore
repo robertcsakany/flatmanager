@@ -1,0 +1,10 @@
+.svn
+/target
+/.settings
+/.gwt
+/.project
+/.classpath
+/nbactions.xml
+/gwt-unitCache
+/war
+/development

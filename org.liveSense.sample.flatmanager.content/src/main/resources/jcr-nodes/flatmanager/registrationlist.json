@@ -1,0 +1,34 @@
+{
+    "caption": "Regisztráció jóváhagyása",
+    "sling:resourceType": "flatmanager/registrationlist",
+    "error": "Hiba!",
+    "security:acl": [
+        {
+            "principal": "everyone",
+            "denied": [
+                "jcr:all"
+            ]
+        },
+        {
+            "principal": "admin",
+            "granted": [
+                "jcr:all"
+            ],
+            "denied": []
+        },
+        {
+            "principal": "Managers",
+            "granted": [
+                "jcr:all"
+            ],
+            "denied": []
+        },
+        {
+            "principal": "Owners",
+            "granted": [
+                "jcr:all"
+            ],
+            "denied": []
+        }
+    ]
+}

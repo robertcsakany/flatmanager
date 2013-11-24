@@ -1,0 +1,20 @@
+{
+	"security:acl": [
+		{
+			"principal": "admin",
+			"granted": [
+				"jcr:read",
+				"jcr:write"
+			],
+			"denied": []
+		},
+		{
+			"principal": "everyone",
+			"granted": [],
+			"denied": [
+				"jcr:read",
+				"jcr:write"
+			]
+		}
+	]
+}

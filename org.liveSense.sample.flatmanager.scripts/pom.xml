@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.github.livesense</groupId>
+		<artifactId>org.liveSense.sample.flatmanager.parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<artifactId>org.liveSense.sample.flatmanager.scripts</artifactId>
+	<packaging>bundle</packaging>
+
+	<name>liveSense :: sample :: flatmanager :: scripts</name>
+	<version>1.0.0-SNAPSHOT</version>
+	<description>This bundle provides JSP scripts that is loaded in the JCR repository for the flatmanager</description>
+
+	<profiles>
+	
+		<!-- Development profile - It is compile JSP's directly from filesystem -->
+		<profile>
+			<id>jsp-scripts-development</id>
+			<activation>
+				<file>
+					<exists>${basedir}/jsp-scripts-development</exists>
+				</file>
+			</activation>
+
+			<build>
+				<resources>
+					<resource>
+						<targetPath>${basedir}/target</targetPath>
+						<directory>src/main/resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.felix</groupId>
+						<artifactId>maven-bundle-plugin</artifactId>
+						<extensions>true</extensions>
+						<configuration>
+							<instructions>
+								<Include-Resource>
+									development-configurations=target/development-configurations,
+									META-INF=target/maven-shared-archive-resources/META-INF
+								</Include-Resource>
+								<Felix-Initial-Configuration>
+									development-configurations
+								</Felix-Initial-Configuration>
+							</instructions>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Release-Compiled profile - Compile JSP and Embed to JAR -->
+		<profile>
+			<id>jsp-scripts-release-compiled</id>
+			<activation>
+				<file>
+					<exists>${basedir}/jsp-scripts-release-compiled</exists>
+				</file>
+			</activation>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.sling</groupId>
+						<artifactId>maven-jspc-plugin</artifactId>
+						<version>2.0.6</version>
+						<executions>
+							<execution>
+								<id>compile-jsp</id>
+								<goals>
+									<goal>jspc</goal>
+								</goals>
+								<configuration>
+									<sourceDirectory>${basedir}/src/main/resources/jsp-scripts</sourceDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.felix</groupId>
+						<artifactId>maven-bundle-plugin</artifactId>
+						<extensions>true</extensions>
+						<configuration>
+							<instructions>
+								<Include-Resource>
+									org/apache/jsp=target/classes/org/apache/jsp,
+									apps/flatmanager=target/classes/jsp-scripts/apps/flatmanager,
+									META-INF=target/maven-shared-archive-resources/META-INF
+								</Include-Resource>
+								<Sling-Bundle-Resources>
+									/apps/flatmanager,
+									/var/classes!/org/apache/jsp/apps/flatmanager
+								</Sling-Bundle-Resources>
+							</instructions>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Release profile - It is copy JSP-s to content repository -->
+		<profile>
+			<id>jsp-scripts-release</id>
+			<activation>
+				<file>
+					<exists>${basedir}/jsp-scripts-release</exists>
+				</file>
+			</activation>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.felix</groupId>
+						<artifactId>maven-bundle-plugin</artifactId>
+						<extensions>true</extensions>
+						<configuration>
+							<instructions>
+								<!-- Copy the files from filesystem to Bundle -->
+								<Include-Resource>
+									jsp-scripts=src/main/resources/jsp-scripts,
+									META-INF=target/maven-shared-archive-resources/META-INF
+								</Include-Resource>
+								<!-- initial content to be loaded on bundle installation -->
+								<Sling-Initial-Content>
+									jsp-scripts/apps/flatmanager;path:=/apps/flatmanager;overwrite:=true;uninstall:=true
+								</Sling-Initial-Content>
+							</instructions>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.scripting.jsp.taglib.jstl</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.scripting.jsp.taglib.json</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.scripting.jsp.taglib</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.jcr.api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.jcr.jackrabbit.accessmanager</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.jcr.jackrabbit.usermanager</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.jackrabbit</groupId>
+			<artifactId>jackrabbit-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.jcr</groupId>
+			<artifactId>jcr</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.service.securityManager</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.service.languageSelector</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.misc.i18n</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.service.activation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.service.markdown</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.service.email</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.livesense</groupId>
+			<artifactId>org.liveSense.sample.flatmanager.i18n</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>

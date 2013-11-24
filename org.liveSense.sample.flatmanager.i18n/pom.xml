@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>com.github.livesense</groupId>
+		<artifactId>org.liveSense.sample.flatmanager.parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../</relativePath>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>org.liveSense.sample.flatmanager.i18n</artifactId>
+	<packaging>bundle</packaging>
+
+    <properties>
+        <message>FlatManagerMessages</message>
+    </properties>
+    
+	<version>1.0.0-SNAPSHOT</version>
+	<name>liveSense :: sample :: flatmanager :: I18n</name>
+	<description>FlatManager sample internationalization support</description>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native2ascii-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>native2ascii</goal>
+                        </goals>
+                        <phase>process-resources</phase>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <includes>
+                                <include>**/*.properties</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>
+                            ${project.artifactId}.*;version=${project.version}
+                        </Export-Package>
+                        <Include-Resource>
+                            {maven-resources},
+                            ${project.build.directory}/classes
+                        </Include-Resource>
+                        <I18n-ResourceBundles>${project.artifactId}.${message}</I18n-ResourceBundles>
+                    </instructions>
+                </configuration>
+            </plugin>
+            
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.livesense</groupId>
+            <artifactId>org.liveSense.misc.i18n</artifactId>
+        </dependency>
+    </dependencies>
+</project>

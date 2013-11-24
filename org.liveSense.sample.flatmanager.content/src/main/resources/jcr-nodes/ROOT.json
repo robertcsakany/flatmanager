@@ -1,0 +1,50 @@
+{
+    "security:acl": [
+        {
+            "principal": "everyone",
+            "granted": [
+                "jcr:read"
+            ],
+            "denied": [
+                "jcr:write"
+            ]
+        },
+        {
+            "principal": "admin",
+            "granted": [
+                "jcr:read",
+                "jcr:write"
+            ],
+            "denied": []
+        }
+    ],
+    "jcr:mixinTypes": [
+        "sling:Redirect"
+    ],
+    "sling:resourceType": "sling:redirect",
+    "sling:target": "/flatmanager/index.html",
+    "security:principals": [
+        {
+            "name": "manager",
+            "password": "manager",
+            "userType": "MANAGER"
+        },
+        {
+            "name": "Managers",
+            "isgroup": "true",
+            "members": [
+                "manager"
+            ]
+        },
+        {
+            "name": "Owners",
+            "isgroup": "true",
+            "members": []
+        },
+        {
+            "name": "Renters",
+            "isgroup": "true",
+            "members": []
+        }
+    ]
+}

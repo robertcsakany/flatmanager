@@ -1,0 +1,29 @@
+{
+    "title": "Lakások",
+    "sling:resourceType": "flatmanager/flats",
+    "numberOfFlats": 10,
+    "testelek1": {
+        "sling:resourceType": "flatmanager/flatowner",
+        "flatowner": "Testelek 1",
+        "flatnumber": 1,
+        "percent": 10
+    },
+    "testelek2": {
+        "sling:resourceType": "flatmanager/flatowner",
+        "flatowner": "Testelek 2",
+        "flatnumber": 2,
+        "percent": 20
+    },
+    "testelek31": {
+        "sling:resourceType": "flatmanager/flatowner",
+        "flatowner": "Testelek 3_1",
+        "flatnumber": 3,
+        "percent": 5
+    },
+    "testelek32": {
+        "sling:resourceType": "flatmanager/flatowner",
+        "flatowner": "Testelek 3_2",
+        "flatnumber": 3,
+        "percent": 5
+    }
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.github.livesense</groupId>
+		<artifactId>org.liveSense.sample.flatmanager.parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+	</parent>
+
+	<artifactId>org.liveSense.sample.flatmanager.content</artifactId>
+	<packaging>bundle</packaging>
+
+    <name>liveSense :: sample :: FlatManager Contents</name>
+	<version>1.0.0-SNAPSHOT</version>
+	<description>
+    This bundle provides content that is loaded in the JCR repository for the Flatmanager Sample
+  </description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package/>
+						<Sling-Initial-Content>
+							jcr-nodes;path:=/;overwrite:=true;uninstall:=false;overwriteProperties:=true,
+							jcr-contents;path:=/;overwrite:=false;uninstall:=false
+						</Sling-Initial-Content>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

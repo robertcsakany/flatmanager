@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="liveSense-${liveSense.version}-sample-flatmanager" xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
+	<feature name="liveSense-sample-flatmanager" version="1.0.0-SNAPSHOT" description="liveSense sample flatmanager">
+		<feature>liveSense-core-webconsole</feature>
+		<feature>liveSense-core-sling-extension-fsresource</feature>
+        <feature>liveSense-core-base</feature>
+        <feature>liveSense-framework-gwt</feature>
+        <feature>liveSense-misc-i18n</feature>
+		<feature>liveSense-misc-configurationLoader</feature>
+		<feature>liveSense-scripting-jsp-taglib-jstl</feature>
+        <feature>liveSense-service-languageSelector</feature>
+        <feature>liveSense-service-securityManager</feature>
+        <feature>liveSense-service-markdown</feature>
+        <feature>liveSense-service-email</feature>
+        <feature>liveSense-service-cxf</feature>
+        <feature>liveSense-service-activation</feature>
+		<feature>liveSense-service-captcha</feature>
+        <feature>liveSense-jcr-explorer</feature>
+
+        <bundle>mvn:org.apache.sling.samples/org.apache.sling.samples.accessmanager.ui/0.9-SNAPSHOT</bundle>
+        <bundle>mvn:org.apache.sling.samples/org.apache.sling.samples.usermanager.ui/0.9-SNAPSHOT</bundle>
+
+        <bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.jcr.loginpage/1.0.0-SNAPSHOT</bundle>
+   		<bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.content/1.0.0-SNAPSHOT</bundle>
+   		<bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.i18n/1.0.0-SNAPSHOT</bundle>
+   		<bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.scripts/1.0.0-SNAPSHOT</bundle>
+   		<bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.server.rest/1.0.0-SNAPSHOT</bundle>
+	</feature>
+</features>
