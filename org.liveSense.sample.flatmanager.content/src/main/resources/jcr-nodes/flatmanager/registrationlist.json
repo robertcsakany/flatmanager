@@ -1,7 +1,10 @@
 {
     "caption": "Regisztráció jóváhagyása",
     "sling:resourceType": "flatmanager/registrationlist",
+    "activateUserLabel" : "Aktivál",
+    "infoBlockMessage" : "Az aktiváció sikeresen megtörtént",
     "error": "Hiba!",
+    "menu_order": 1,
     "security:acl": [
         {
             "principal": "everyone",

@@ -30,7 +30,6 @@
 				<ul id="errorMessages"></ul>
 			</div>
 		</div>
-
 		<div id="infoBlock" class="clearfix alert alert-primary" style="display: none;">
 			<div>
 				<h4>${node.properties.infoBlockHeader}</h4>
@@ -38,7 +37,14 @@
 			</div>
 		</div>
 
-		<c:set var="query" value="SELECT * FROM [nt:unstructured] WHERE [sling:resourceType] = 'liveSense/ActivationCode' ORDER BY [expire]"/>
+		<c:if test="${Managers}">
+			<c:set var="query" value="SELECT * FROM [nt:unstructured] WHERE [sling:resourceType] = 'liveSense/ActivationCode' AND [userType] = 'OWNER' ORDER BY [expire]"/>
+		</c:if>
+
+		<c:if test="${Owners}">
+			<c:set var="query" value="SELECT * FROM [nt:unstructured] WHERE [sling:resourceType] = 'liveSense/ActivationCode' AND [userType] = 'RENTER' AND [flatNumber] = ${userProps_flatNumber.long} ORDER BY [expire]"/>
+		</c:if>
+
 		<c:set var="cnt" value="0"/>
 		<table class="table">
 			<c:forEach var="n" items="${node.SQL2Query[query]}">
@@ -53,6 +59,9 @@
 						<td>${n.properties.flatOwner}</td>
 						<td>${n.properties.flatNumber}</td>
 						<td>${n.properties.status}</td>
+						<td>
+							<button type="submit" activateSubmitValue="${n.name}", class="btn btn-primary" >${node.properties.activateUserLabel}</button>
+						</td>
 					</form>
 				</tr>	
 				<!--  TODO Access rights -->
@@ -63,6 +72,56 @@
 
 <jsp:directive.include file="../javascript-jquery.jsp" />
 <jsp:directive.include file="../javascript-bootstrap.jsp" />
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+	$("button[activateSubmitValue]").click(function(event) { 
+		var button = $(this).data('clicked',$(event.target))
+		event.preventDefault();
+		$.ajax({
+			type: "POST",
+			data: {activationCode : button.attr("activateSubmitValue")},			
+			url: "/webservices/flatManagerRegistrationService/activate.json?locale=${locale}",
+			success: function (res) {
+				// Server validation error
+				if (res.ok === false) {
+					// Marking fields as invalid and 
+					var globalErrors = [];
+					jQuery.each(res.errors, function() {
+						globalErrors.push(this.message);
+					});
+					$("#errorBlock").show();
+					$("#errorMessages").empty();
+					jQuery.each(globalErrors, function() {
+						$("#errorMessages").append('<li>'+this+'</li>'); 
+					});
+					
+					// Scroll on top
+					$('html, body').animate({
+						scrollTop: $('html, body').offset().top-100
+					}, 500);
+					
+					
+				// Registration is OK. 
+				} else {
+					bootbox.dialog("${node.properties.infoBlockMessage}", [{
+					    "label" : "Ok",
+					    "class" : "btn-success",
+					    callback: function() {
+					    	location.reload();
+					    }
+					}]);
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				bootbox.alert("${communicationError}" + textStatus, errorThrown);
+			}
+		});
+	});
+});
+</script>
 </body>
 </html>
 

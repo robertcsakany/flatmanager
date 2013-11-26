@@ -201,6 +201,7 @@
 
 <fmt:message bundle="${resourceBundle}" key="communicationError" var="communicationError"/>
 
+
 <script type="text/javascript">
 $(document).ready(function(){
 	$('#captchaImage').click(function(e) {

@@ -22,11 +22,10 @@
 			<a class="brand" style="padding-top: 0px;padding-bottom: 0px;" href="../"><img src="/images/virtua-logo.png"/></a>
 			<div class="nav-collapse" id="main-menu">
 				<ul class="nav" id="main-menu-left">
-					<c:set var="query" value="SELECT * FROM [nt:unstructured] WHERE [nt:unstructured].menu_order IS NOT NULL ORDER BY [menu_order]"/>
+					<c:set var="query" value="SELECT * FROM [nt:base] WHERE menu_order IS NOT NULL ORDER BY [menu_order]"/>
 					<c:set var="cnt" value="0"/> 
 					<c:forEach var="n" items="${node.SQL2Query[query]}">
 						<c:set var="cnt" value="${cnt+1}"/> 
-						<c:if test="${(n.name !='admin') || (n.name =='admin' && (userName == 'admin' || userName == 'saasadmin'))}">
 						<c:choose>
 							<c:when test="${n.name == node.name}">
 								<li class="active"><a href="${n.name}.html">${n.properties['caption']}</a></li>
@@ -35,7 +34,6 @@
 								<li><a href="${n.name}.html">${n.properties['caption']}</a></li>
 							</c:otherwise>
 						</c:choose>
-						</c:if>
 					</c:forEach>
 				</ul>
 

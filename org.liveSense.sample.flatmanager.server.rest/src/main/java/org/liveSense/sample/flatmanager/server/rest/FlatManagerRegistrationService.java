@@ -2,6 +2,7 @@ package org.liveSense.sample.flatmanager.server.rest;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -10,6 +11,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,10 +33,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.User;
+import org.apache.jackrabbit.value.StringValue;
 import org.apache.sling.jcr.api.SlingRepository;
+import org.liveSense.core.wrapper.JcrNodeWrapper;
 import org.liveSense.sample.flatmanager.i18n.FlatManagerMessages;
 import org.liveSense.sample.flatmanager.server.rest.api.FlatManagerError;
 import org.liveSense.sample.flatmanager.server.rest.api.FlatManagerResult;
+import org.liveSense.sample.flatmanager.server.rest.api.UserType;
 import org.liveSense.server.i18n.service.I18nService.I18nService;
 import org.liveSense.service.captcha.CaptchaService;
 import org.liveSense.service.cxf.WebServiceMarkerInterface;
@@ -51,12 +59,14 @@ import org.slf4j.LoggerFactory;
 		@Property(name = WebServiceRegistrationListener.WS_TYPE, value="jaxrs")
 })
 @SuppressWarnings({ "serial", "restriction" })
-public class FlatManagerRegistrationService implements WebServiceMarkerInterface {
-	
-	
+public class FlatManagerRegistrationService implements WebServiceMarkerInterface, FlatManagerRegistrationInterface {
+
+
 	private final Logger log = LoggerFactory.getLogger(FlatManagerRegistrationService.class);
 
 	public static final String FLATMANAGER_REGISTRATION_SERVICE_URL = "/flatManagerRegistrationService";
+
+	public static final String FLATMANAGER_USERHOME = "flatmanager/home";
 
 	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
 	private CaptchaService captchaService;
@@ -69,57 +79,47 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 
 	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
 	private SecurityManagerService securityManagerService;
-	
+
 	@Reference(cardinality=ReferenceCardinality.MANDATORY_UNARY, policy=ReferencePolicy.DYNAMIC)
 	private ActivationService activationService;
 
 	@Reference
 	SlingRepository repsoitory;
-	
+
 	@Context private HttpServletRequest servletRequest;
 	@Context private HttpServletResponse servletResponse;
-	
-	/**
-	 * Register user
-	 * 
-	 * Test with CURL:
-	 *  curl -X POST -d "userName=admin" http://localhost:8080/webservices/saasRegistrationService/register.json?locale=hu_HU
-	 *  returns: {"errors":["A admin felhasználó már létezik"],"ok":false}
-	 *  
-	 *  curl -X POST -d "userName=admin" http://localhost:8080/webservices/saasRegistrationService/register?locale=hu_HU
-	 *  returns: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><saasRegistrationResult><errors><errors>A admin felhasználó már létezik</errors></errors><ok>false</ok></saasRegistrationResult>
-	 * 
-	 * @param userName
-	 * @param fullName
-	 * @param email
-	 * @param emailConfirm
-	 * @param phone
-	 * @param password
-	 * @param passwordConfirm
-	 * @param captchaCode
-	 * @return 
-	 */
 
 
 	private Locale getLocale() {
 		return languageSelectorService.getLocaleByRequest(servletRequest);
 	}
-	
+
 	private FlatManagerMessages getMessages() throws IOException {
 		return i18nService.create(FlatManagerMessages.class, getLocale());
 	}
 	
+	private void sendMessage(Session session, String userName, String from, String subject, String message) throws PathNotFoundException, RepositoryException {
+		Node userHome = session.getRootNode().getNode(FLATMANAGER_USERHOME+"/"+userName);
+		Node messageHome = null;
+		if (!userHome.hasNode("messages")) {
+			messageHome = userHome.addNode("messages");
+		} else {
+			messageHome = userHome.getNode("messages");
+		}
+		Node messageNode = messageHome.addNode(new Long(Calendar.getInstance().getTimeInMillis()).toString());
+		messageNode.setProperty("date", Calendar.getInstance());
+		messageNode.setProperty("sling:resourceType", "flatmanager/message");
+		messageNode.setProperty("from", from);
+		messageNode.setProperty("message", message);
+		messageNode.setProperty("subject", subject);
+		
+		// TODO Sending email
+	}
 	
-	public enum UserType {
-		OWNER,
-		RENTER
-	}
-
-	public enum ActivationType {
-		OWNERREGISTRATION,
-		RENTERREGISTRATION
-	}
-
+	/* (non-Javadoc)
+	 * @see org.liveSense.sample.flatmanager.server.rest.FlatManagerRegistrationInterface#registerUser(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.liveSense.sample.flatmanager.server.rest.api.UserType, java.lang.Long, java.lang.String, java.lang.String)
+	 */
+	@Override
 	@POST
 	@Path("/register")
 	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED})
@@ -136,11 +136,11 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 			@FormParam("password") String password,
 			@FormParam("passwordConfirm") String passwordConfirm,
 			@FormParam("userType") UserType userType,
-			@FormParam("flatNumber") String flatNumber,
+			@FormParam("flatNumber") Long flatNumber,
 			@FormParam("flatOwner") String flatOwner,
 			@FormParam("captchaCode") String captchaCode) {
-		
-		
+
+
 		Session jcrSession = null;
 
 		String captchaId;
@@ -149,7 +149,7 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 		captchaId = captchaService.extractCaptchaIdFromRequest(servletRequest);
 
 		FlatManagerMessages msg = null;
-					
+
 		// FIRST STEP
 		// Getting messages by browser's or user's locale
 		Locale locale = languageSelectorService.getLocaleByRequest(servletRequest);
@@ -159,7 +159,7 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 			errors.add(new FlatManagerError("userName", "Internal error"));
 			return new FlatManagerResult(errors);
 		}
-		
+
 		try {
 			// SECOND STEP
 			// Check form datas form user validation
@@ -220,7 +220,7 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 
 			if (errors.isEmpty()) {
 				jcrSession = repsoitory.loginAdministrative(null);
-			
+
 				Map<String, Object> props = new HashMap<String, Object>();
 				props.put("title", title);
 				props.put("firstName", firstName);
@@ -228,19 +228,20 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 				props.put("lastName", lastName);
 				props.put("email", email);
 				props.put("phone", phone);
-				props.put("status", "INACTIVE");
 				props.put("userType", userType);				
 				props.put("flatOwner", flatOwner);
 				props.put("flatNumber", flatNumber);
 				props.put("activationType", userType == null ? null : userType.toString()+"REGISTRATION");
-				
+
 				securityManagerService.addUser(jcrSession, userName, passwordConfirm, props);
-				
+
 				String activationCode = UUID.randomUUID().toString();
 				props.put("userName", userName);
 				activationService.addActivationCode(jcrSession, activationCode, props);
+
+				boolean isOwner = userType == null ? false : userType == UserType.OWNER;
 				
-				// TODO Internal message to Manager
+				sendMessage(jcrSession, userName, isOwner ? flatOwner : "KOZOS KEPVISELO", "Aktivacio megtortent", "Sikeresen aktivaltuk felhasznalojat");
 				
 				if (jcrSession != null && jcrSession.isLive() && jcrSession.hasPendingChanges()) {
 					jcrSession.save();
@@ -256,22 +257,50 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 		}
 		return new FlatManagerResult();
 	}
-	
-	
+
+
+	/* (non-Javadoc)
+	 * @see org.liveSense.sample.flatmanager.server.rest.FlatManagerRegistrationInterface#activateUser(java.lang.String)
+	 */
+	@Override
 	@POST
 	@Path("/activate")
 	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED})
 	@Produces(value={MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
 	public FlatManagerResult activateUser(
-				@FormParam("activationCode") String activationCode) {
+			@FormParam("activationCode") String activationCode) {
 
 		Session jcrSession = null;
 		List<FlatManagerError> errors = new ArrayList<FlatManagerError>();
 
 		try {
 			jcrSession = repsoitory.loginAdministrative(null);
-			activationService.checkActivationCode(jcrSession, activationCode);
-		
+			if (activationService.checkActivationCode(jcrSession, activationCode)) {
+				JcrNodeWrapper jcrnv = activationService.getActivationFields(jcrSession, activationCode);
+				
+				User user = securityManagerService.getUserByName(jcrSession, jcrnv.getProperties().get("userName").toString());
+				
+				if (jcrnv.getProperties().get("userType").toString().equals(UserType.OWNER.toString())) {
+					securityManagerService.addPrincipalToGroup(jcrSession, user.getID(), "Owners");
+				} else if (jcrnv.getProperties().get("userType").toString().equals(UserType.RENTER.toString())) {
+					securityManagerService.addPrincipalToGroup(jcrSession, user.getID(), "Renters");
+				}
+				for (String key : jcrnv.getProperties().keySet()) {
+					if (!key.equalsIgnoreCase("userName") && 
+							!key.equalsIgnoreCase("password") &&
+							!key.equalsIgnoreCase("activationType")) {
+						user.setProperty(key, jcrnv.getProperties().get(key).getProperty().getJcrProperty().getValue());
+					}
+				}
+				user.setProperty("status", new StringValue("ACTIVE"));
+				securityManagerService.createUserHome(jcrSession, user.getID(), "flatmanager");
+				activationService.removeActivationCode(jcrSession, activationCode);
+				if (jcrSession.isLive() && jcrSession.hasPendingChanges()) {
+					jcrSession.save();
+				}
+			} else {
+				errors.add(new FlatManagerError("Error"));
+			}
 		} catch (Throwable e) {
 			errors.add(new FlatManagerError(e.getMessage()));
 			return new FlatManagerResult(errors);
@@ -282,9 +311,9 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 		}
 		return new FlatManagerResult();
 	}
-	
 
-/*		
+
+	/*		
 	@POST
 	@Path("/passwordreset")
 	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED})
@@ -366,7 +395,7 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 			sqlConnection = libraSession.getConnection();
 			if (jcrSession == null) throw new LibraException(libraSession.getGlobalMessage().connection_error());
 			if (sqlConnection == null) throw new LibraException(libraSession.getGlobalMessage().connection_error());
-			
+
 			FlatManagerResult res = saasDataService.changePassword(libraSession, resetCode, password, passwordConfirm);
 			if (res.isOk()) {
 				if (libraSession.getJcrSession() != null && libraSession.getJcrSession().isLive() && libraSession.getJcrSession().hasPendingChanges()) {
@@ -404,6 +433,6 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 			}
 		}
 	}
-	*/
+	 */
 
 }

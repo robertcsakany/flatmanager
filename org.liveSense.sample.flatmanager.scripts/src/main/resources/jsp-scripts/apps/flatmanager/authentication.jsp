@@ -1,3 +1,5 @@
+<%@page import="org.liveSense.core.wrapper.GenericValue"%>
+<%@page import="java.util.Map"%>
 <%@page import="javax.jcr.Node"%>
 <%@page import="org.apache.sling.api.scripting.SlingScriptHelper"%>
 <%@page import="org.apache.jackrabbit.api.security.user.User"%>
@@ -33,15 +35,23 @@
 	if ((SecurityManagerService)sling.getService(SecurityManagerService.class) != null && StringUtils.isNotEmpty(request.getRemoteUser())) {
 		List<Group> groups = new ArrayList<Group>();
 		try {
-			groups = ((SecurityManagerService)sling.getService(SecurityManagerService.class)).getEffectiveMemberOfByName(currentNode.getSession(), request.getRemoteUser());
+			Map<String, GenericValue> userProps = ((SecurityManagerService)sling.getService(SecurityManagerService.class)).getPrincipalPropertiesByName(currentNode.getSession(), request.getRemoteUser());
+
+			for (String key : userProps.keySet()) {
+				pageContext.setAttribute("userProps_"+key, userProps.get(key).get());
+			}
 			
+			groups = ((SecurityManagerService)sling.getService(SecurityManagerService.class)).getEffectiveMemberOfByName(currentNode.getSession(), request.getRemoteUser());
+
 			for (Group grp : groups) {
 				if (grp.getID().equals("administrators")) {
 					isAdmin = true;
 					pageContext.setAttribute("isAdmin", new Boolean(true));
 				}
 				// Other group specific settings
+				pageContext.setAttribute(grp.getID(), new Boolean(true));
 			}
+
 		} catch (Exception e) {
 		}
 	}
