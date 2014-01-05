@@ -40,6 +40,7 @@ import org.liveSense.core.wrapper.JcrNodeWrapper;
 import org.liveSense.sample.flatmanager.i18n.FlatManagerMessages;
 import org.liveSense.sample.flatmanager.server.rest.api.FlatManagerError;
 import org.liveSense.sample.flatmanager.server.rest.api.FlatManagerResult;
+import org.liveSense.sample.flatmanager.server.rest.api.RegistrationRequest;
 import org.liveSense.sample.flatmanager.server.rest.api.UserType;
 import org.liveSense.server.i18n.service.I18nService.I18nService;
 import org.liveSense.service.captcha.CaptchaService;
@@ -119,26 +120,13 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 	/* (non-Javadoc)
 	 * @see org.liveSense.sample.flatmanager.server.rest.FlatManagerRegistrationInterface#registerUser(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.liveSense.sample.flatmanager.server.rest.api.UserType, java.lang.Long, java.lang.String, java.lang.String)
 	 */
+	
 	@Override
 	@POST
 	@Path("/register")
-	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED})
+	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
 	@Produces(value={MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
-	public FlatManagerResult registerUser(
-			@FormParam("userName") String userName,
-			@FormParam("title") String title,
-			@FormParam("firstName") String firstName,
-			@FormParam("middleName") String middleName,
-			@FormParam("lastName") String lastName,
-			@FormParam("email") String email,
-			@FormParam("emailConfirm") String emailConfirm,
-			@FormParam("phone") String phone,
-			@FormParam("password") String password,
-			@FormParam("passwordConfirm") String passwordConfirm,
-			@FormParam("userType") UserType userType,
-			@FormParam("flatNumber") Long flatNumber,
-			@FormParam("flatOwner") String flatOwner,
-			@FormParam("captchaCode") String captchaCode) {
+	public FlatManagerResult registerUser(RegistrationRequest registration) {
 
 
 		Session jcrSession = null;
@@ -163,10 +151,10 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 		try {
 			// SECOND STEP
 			// Check form datas form user validation
-			if (userName != null && !"".equals(userName)) {
-				if (userName.matches("^[a-zA-Z0-9-_.]")) {
+			if (StringUtils.isNotEmpty(registration.getUserName())) {
+				if (registration.getUserName().matches("^[a-zA-Z0-9-_.]")) {
 					errors.add(new FlatManagerError("userName", msg.signup_error_illegalCharacterInUserName()));
-				} else if (userName.length() < 6) {
+				} else if (registration.getUserName().length() < 6) {
 					errors.add(new FlatManagerError("userName", msg.signup_error_userNameIsTooShort()));
 				}
 			} else {
@@ -174,18 +162,18 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 			}
 
 
-			if (StringUtils.isEmpty(firstName) || StringUtils.isEmpty(lastName)) {
+			if (StringUtils.isEmpty(registration.getFirstName()) || StringUtils.isEmpty(registration.getLastName())) {
 				errors.add(new FlatManagerError("lastName", msg.signup_error_theFullNameIsNull()));			
 			}
 
-			if (email == null || "".equals(email)) {
+			if (StringUtils.isEmpty(registration.getEmail())) {
 				errors.add(new FlatManagerError("email", msg.signup_error_emailIsNull()));
 			} else {
 
 				//Checks for email addresses starting with
 				//inappropriate symbols like dots or @ signs.
 				Pattern p = Pattern.compile("^\\.|^\\@");
-				Matcher m = p.matcher(email);
+				Matcher m = p.matcher(registration.getEmail());
 				if (m.find()) {
 					errors.add(new FlatManagerError("email", msg.signup_error_emailCantStartWithDotOrAt()));
 				}
@@ -193,59 +181,69 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 				//Checks for email addresses that start with
 				//www. and prints a message if it does.
 				p = Pattern.compile("^www\\.");
-				m = p.matcher(email);
+				m = p.matcher(registration.getEmail());
 				if (m.find()) {
 					errors.add(new FlatManagerError("email", msg.signup_error_emailCantStartWithWww()));
 				}
 
 				p = Pattern.compile("[^A-Za-z0-9\\.\\@_\\-~#]+");
-				m = p.matcher(email);
+				m = p.matcher(registration.getEmail());
 				if (m.find()) {
 					errors.add(new FlatManagerError("email", msg.signup_error_emailIllegalCharacter()));
 				}
 			}
-			if (password == null || "".equals(password)) {
+			if (StringUtils.isEmpty(registration.getPassword())) {
 				errors.add(new FlatManagerError("password", msg.signup_error_passwordIsNull()));
 			} else {
-				if (password.length() < 6) {
+				if (registration.getPassword().length() < 6) {
 					errors.add(new FlatManagerError("password", msg.signup_error_passwordIsTooShort()));
 				}
 			}
-			if (email == null || emailConfirm == null || !email.equals(emailConfirm)) {
+			if (StringUtils.isEmpty(registration.getEmail()) || StringUtils.isEmpty(registration.getEmailConfirm()) 
+					|| !registration.getEmail().equals(registration.getEmailConfirm())) {
 				errors.add(new FlatManagerError("emailConfirm", msg.signup_error_emailConfirmNotMatch()));
 			}
-			if (password == null || passwordConfirm == null || !password.equals(passwordConfirm)) {
+			if (StringUtils.isEmpty(registration.getPassword()) || StringUtils.isEmpty(registration.getPassword()) 
+					|| !registration.getPassword().equals(registration.getPasswordConfirm())) {
 				errors.add(new FlatManagerError("passwordConfirm", msg.signup_error_passwordConfirmNotMatch()));
 			}
 
+			if (StringUtils.isEmpty(registration.getCaptchaCode())) {
+				errors.add(new FlatManagerError("captchaCode", msg.signup_error_captchaCodeIsEmpty()));
+			} else if (!captchaService.validateCaptchaResponse(servletRequest, registration.getCaptchaCode())) {
+				errors.add(new FlatManagerError("captchaCode", msg.captcha_code_is_invalid()));				
+			}
+			
 			if (errors.isEmpty()) {
 				jcrSession = repsoitory.loginAdministrative(null);
 
 				Map<String, Object> props = new HashMap<String, Object>();
-				props.put("title", title);
-				props.put("firstName", firstName);
-				props.put("middleName", middleName);
-				props.put("lastName", lastName);
-				props.put("email", email);
-				props.put("phone", phone);
-				props.put("userType", userType);				
-				props.put("flatOwner", flatOwner);
-				props.put("flatNumber", flatNumber);
-				props.put("activationType", userType == null ? null : userType.toString()+"REGISTRATION");
+				props.put("title", registration.getTitle());
+				props.put("firstName", registration.getFirstName());
+				props.put("middleName", registration.getMiddleName());
+				props.put("lastName", registration.getLastName());
+				props.put("email", registration.getEmail());
+				props.put("phone", registration.getPhone());
+				props.put("userType", registration.getUserType());				
+				props.put("flatOwner", registration.getFlatOwner());
+				props.put("flatNumber", registration.getFlatNumber());
+				props.put("activationType", registration.getUserType() == null ? null : registration.getUserType().toString()+"REGISTRATION");
 
-				securityManagerService.addUser(jcrSession, userName, passwordConfirm, props);
+				securityManagerService.addUser(jcrSession, registration.getUserName(), registration.getPassword(), props);
 
 				String activationCode = UUID.randomUUID().toString();
-				props.put("userName", userName);
+				props.put("userName", registration.getUserName());
 				activationService.addActivationCode(jcrSession, activationCode, props);
 
-				boolean isOwner = userType == null ? false : userType == UserType.OWNER;
+				boolean isOwner = registration.getUserType() == null ? false : registration.getUserType() == UserType.OWNER;
 				
-				sendMessage(jcrSession, userName, isOwner ? flatOwner : "KOZOS KEPVISELO", "Aktivacio megtortent", "Sikeresen aktivaltuk felhasznalojat");
+				sendMessage(jcrSession, registration.getUserName(), isOwner ? registration.getFlatOwner() : "KOZOS KEPVISELO", "Aktivacio megtortent", "Sikeresen aktivaltuk felhasznalojat");
 				
 				if (jcrSession != null && jcrSession.isLive() && jcrSession.hasPendingChanges()) {
 					jcrSession.save();
 				}
+			} else {
+				return new FlatManagerResult(errors);				
 			}
 		} catch (Throwable e) {
 			errors.add(new FlatManagerError(e.getMessage()));
@@ -289,7 +287,7 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 					if (!key.equalsIgnoreCase("userName") && 
 							!key.equalsIgnoreCase("password") &&
 							!key.equalsIgnoreCase("activationType")) {
-						user.setProperty(key, jcrnv.getProperties().get(key).getProperty().getJcrProperty().getValue());
+						user.setProperty(key, jcrnv.getProperties().get(key).getProperty().getValue());
 					}
 				}
 				user.setProperty("status", new StringValue("ACTIVE"));

@@ -782,4 +782,7 @@ public interface FlatManagerMessages {
 	@Key(value = "module")
 	String module();
 
+	@Key(value = "signup_error_captchaCodeIsEmpty")
+	String signup_error_captchaCodeIsEmpty();
+
 }
