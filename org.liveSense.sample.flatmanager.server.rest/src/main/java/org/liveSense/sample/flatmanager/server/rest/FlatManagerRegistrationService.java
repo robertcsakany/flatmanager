@@ -33,6 +33,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.jackrabbit.api.security.user.Authorizable;
 import org.apache.jackrabbit.api.security.user.User;
 import org.apache.jackrabbit.value.StringValue;
 import org.apache.sling.jcr.api.SlingRepository;
@@ -49,6 +50,7 @@ import org.liveSense.service.cxf.WebServiceRegistrationListener;
 import org.liveSense.service.languageselector.LanguageSelectorService;
 import org.liveSense.service.mail.activation.ActivationService;
 import org.liveSense.service.securityManager.SecurityManagerService;
+import org.liveSense.service.securityManager.exceptions.PrincipalNotExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,18 +118,81 @@ public class FlatManagerRegistrationService implements WebServiceMarkerInterface
 		
 		// TODO Sending email
 	}
+
 	
 	/* (non-Javadoc)
 	 * @see org.liveSense.sample.flatmanager.server.rest.FlatManagerRegistrationInterface#registerUser(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.liveSense.sample.flatmanager.server.rest.api.UserType, java.lang.Long, java.lang.String, java.lang.String)
 	 */
+
+	@Override
+	@POST
+	@Path("/register")
+	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
+	@Produces(value={MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+	public FlatManagerResult checkUserName(RegistrationRequest registration) {
+		
+		Session jcrSession = null;
+
+		FlatManagerMessages msg = null;
+		List<FlatManagerError> errors = new ArrayList<FlatManagerError>();
+
+		// FIRST STEP
+		// Getting messages by browser's or user's locale
+		Locale locale = languageSelectorService.getLocaleByRequest(servletRequest);
+		try {
+			msg = i18nService.create(FlatManagerMessages.class, locale);
+		} catch (IOException e) {
+			errors.add(new FlatManagerError("userName", "Internal error"));
+			return new FlatManagerResult(errors);
+		}
+
+		try {
+			// SECOND STEP
+			// Check form datas form user validation
+			if (StringUtils.isNotEmpty(registration.getUserName())) {
+				if (registration.getUserName().matches("^[a-zA-Z0-9-_.]")) {
+					errors.add(new FlatManagerError("userName", msg.signup_error_illegalCharacterInUserName()));
+				} else if (registration.getUserName().length() < 6) {
+					errors.add(new FlatManagerError("userName", msg.signup_error_userNameIsTooShort()));
+				}
+			} else {
+				errors.add(new FlatManagerError("userName", msg.signup_error_userNameIsNull()));
+			}
+			
+			if (errors.isEmpty()) {
+				jcrSession = repsoitory.loginAdministrative(null);
+				try {
+					Authorizable auth = securityManagerService.getAuthorizableByName(jcrSession, registration.getUserName());
+					errors.add(new FlatManagerError("userName", msg.signup_error_theUserAlreadyExists(registration.getUserName())));
+				} catch (PrincipalNotExistsException ne) {
+				}
+			}
+		} catch (Throwable e) {
+			errors.add(new FlatManagerError(e.getMessage()));
+			return new FlatManagerResult(errors);
+		} finally {
+			if (jcrSession != null && jcrSession.isLive()) {
+				jcrSession.logout();
+			}
+		}
+		if (errors.isEmpty()) {
+			return new FlatManagerResult();
+		} else {
+			return new FlatManagerResult(errors);
+		}
+	}
+
 	
+	/* (non-Javadoc)
+	 * @see org.liveSense.sample.flatmanager.server.rest.FlatManagerRegistrationInterface#registerUser(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.liveSense.sample.flatmanager.server.rest.api.UserType, java.lang.Long, java.lang.String, java.lang.String)
+	 */
+
 	@Override
 	@POST
 	@Path("/register")
 	@Consumes(value={MediaType.MULTIPART_FORM_DATA, MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON})
 	@Produces(value={MediaType.TEXT_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
 	public FlatManagerResult registerUser(RegistrationRequest registration) {
-
 
 		Session jcrSession = null;
 

@@ -45,15 +45,21 @@
 			<div class="span12" >
 				<form class="form-horizontal" name="registrationForm" id="registrationForm">
 					<fieldset>
-						<legend>{{registration}} ${node.properties.formBlockSectionBaseDataLegend}</legend>
+						<legend>${node.properties.formBlockSectionBaseDataLegend}</legend>
 
 						<div class="control-group">
 							<label class="control-label" for="inputIcon">${node.properties.userNameLabel}</label>
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-user"></i></span>
-									<input type="text" ng-model="registration.userName" placeholder="${node.properties.userNameLabel}" name="userName" id="userName"/>
+									<input required ng-minlength=6 ng-minlength=32 type="text" ng-model="registration.userName" placeholder="${node.properties.userNameLabel}" name="userName" id="userName"/>
 								</div>
+								<div ng-show="registrationForm.userName.$dirty && registrationForm.userName.$invalid">
+									<small class="label label-warning" ng-show="registrationForm.userName.$error.required">${node.properties.userNameValidationError}</small>
+									<small class="label label-warning" ng-show="registrationForm.userName.$error.minlength">${node.properties.userNameValidationError}</small>
+									<small class="label label-warning" ng-show="registrationForm.userName.$error.maxlength">${node.properties.userNameValidationError}</small>
+								</div>
+								
 							</div>
 						</div>
 
@@ -62,7 +68,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-lock"></i></span>
-									<input type="password" ng-model="registration.password" placeholder="${node.properties.passwordLabel}"  name="password" id="password"/>
+									<input required ng-minlength=6 ng-minlength=32 type="password" ng-model="registration.password" placeholder="${node.properties.passwordLabel}"  name="password" id="password"/>
 								</div>
 							</div>
 						</div>
@@ -72,7 +78,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-lock"></i></span>
-									<input type="password" ng-model="registration.passwordConfirm" placeholder="${node.properties.passwordConfirmLabel}"  name="passwordConfirm" id="passwordConfirm"/>
+									<input required ng-minlength=6 ng-minlength=32 type="password" ng-model="registration.passwordConfirm" placeholder="${node.properties.passwordConfirmLabel}"  name="passwordConfirm" id="passwordConfirm"/>
 								</div>
 							</div>
 						</div>
@@ -82,7 +88,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-user-md"></i></span>
-									<input type="text" ng-model="registration.lastName" placeholder="${node.properties.lastNameLabel}"  name="lastName" id="lastName">
+									<input required type="text" ng-model="registration.lastName" placeholder="${node.properties.lastNameLabel}"  name="lastName" id="lastName">
 								</div>
 							</div>
 						</div>
@@ -92,7 +98,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-user-md"></i></span>
-									<input type="text" ng-model="registration.firstName" placeholder="${node.properties.firstNameLabel}"  name="firstName" id="firstName">
+									<input required type="text" ng-model="registration.firstName" placeholder="${node.properties.firstNameLabel}"  name="firstName" id="firstName">
 								</div>
 							</div>
 						</div>
@@ -102,7 +108,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-phone"></i></span>
-									<input type="text" ng-model="registration.phone" placeholder="${node.properties.phoneLabel}" name="phone" id="phone">
+									<input required type="text" ng-model="registration.phone" placeholder="${node.properties.phoneLabel}" name="phone" id="phone">
 								</div>
 							</div>
 						</div>
@@ -112,7 +118,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-envelope"></i></span>
-									<input type="text" ng-model="registration.email" placeholder="${node.properties.emailLabel}"  name="email" id="email">
+									<input required type="email" ng-model="registration.email" placeholder="${node.properties.emailLabel}"  name="email" id="email">
 								</div>
 							</div>
 						</div>
@@ -122,7 +128,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-envelope"></i></span>
-									<input type="text" ng-model="registration.emailConfirm" placeholder="${node.properties.emailConfirmLabel}"  name="emailConfirm" id="emailConfirm">
+									<input required type="email" ng-model="registration.emailConfirm" placeholder="${node.properties.emailConfirmLabel}"  name="emailConfirm" id="emailConfirm">
 								</div>
 							</div>
 						</div>
@@ -132,7 +138,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-wrench"></i></span> 
-									<select ng-model="registration.userType" placeholder="${node.properties.userTypeLabel}" name="userType" id="userType">
+									<select required ng-model="registration.userType" placeholder="${node.properties.userTypeLabel}" name="userType" id="userType">
 										<option value="OWNER">${node.properties.userTypeOwnerLabel}</option>
 										<option value="RENTER">${node.properties.userTypeRenterLabel}</option>
 									</select>
@@ -145,7 +151,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-wrench"></i></span> 
-									<select ng-model="registration.flatNumber" placeholder="${node.properties.flatNumberLabel}" name="flatNumber" id="flatNumber">
+									<select required ng-model="registration.flatNumber" placeholder="${node.properties.flatNumberLabel}" name="flatNumber" id="flatNumber">
 										<c:set var="query" value="SELECT nodes.* FROM [nt:base] as nodes WHERE nodes.[sling:resourceType] = 'flatmanager/flats'"/>
 										<c:forEach var="n" items="${node.SQL2Query[query]}" >
 											<c:forEach var="num" step="1" begin="1" end="${n.properties.numberOfFlats.long}" >
@@ -162,7 +168,7 @@
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-wrench"></i></span> 
-									<select ng-model="registration.owner" placeholder="${node.properties.flatOwnerLabel}" name="flatOwner" id="flatOwner">
+									<select required ng-model="registration.flatOwner" placeholder="${node.properties.flatOwnerLabel}" name="flatOwner" id="flatOwner">
 										<c:set var="query" value="SELECT nodes.* FROM [nt:base] as nodes WHERE nodes.[sling:resourceType] = 'flatmanager/flatowner'"/>
 										<c:forEach var="n" items="${node.SQL2Query[query]}" >
 												<option>${n.properties.flatowner}</option>
@@ -173,11 +179,12 @@
 						</div>
 
 						<div class="control-group">
-							<label class="control-label" for="inputIcon"><img id="captchaImage" src="/session/captcha.png"/></label>
+							<label class="control-label" for="inputIcon">
+							<img ng-click="refreshCaptchaImage($event.target)" id="captchaImage" ng-src="{{captchaImage}}"/></label>
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-magic"></i></span>
-									<input class="input-xlarge" ng-model="registration.captchaCode" type="text" placeholder="${node.properties.captchaLabel}"  name="captchaCode" id="captchaCode" data-placement="right" data-content="${node.properties.captchaDescription}" rel="popover" data-original-title="${node.properties.captchaTitle}"/>
+									<input  required class="input-xlarge" ng-model="registration.captchaCode" type="text" placeholder="${node.properties.captchaLabel}"  name="captchaCode" id="captchaCode" data-placement="right" data-content="${node.properties.captchaDescription}" rel="popover" data-original-title="${node.properties.captchaTitle}"/>
 								</div>
 							</div>
 						</div>

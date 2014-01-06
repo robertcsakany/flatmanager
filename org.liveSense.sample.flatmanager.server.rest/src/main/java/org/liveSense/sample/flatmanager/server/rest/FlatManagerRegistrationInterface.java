@@ -22,4 +22,6 @@ public interface FlatManagerRegistrationInterface {
 
 	FlatManagerResult activateUser(String activationCode);
 
+	FlatManagerResult checkUserName(RegistrationRequest registration);
+
 }

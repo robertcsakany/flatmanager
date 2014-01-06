@@ -15,11 +15,14 @@ var registrationApp=angular.module('registrationApp',['restangular'])
 	);
 
 function registrationCtrl($scope, $log, $location, Restangular){
-	$scope.registration = {};
 	
+	// Default variables
+	$scope.registration = {};
+	$scope.captchaImage = "/session/captcha.png";
 	$scope.isOk = false;
 	$scope.isError = false;
 	
+	// Register
 	$scope.register=function(){
 		Restangular.all('register').post($scope.registration).then(
 			function(result) {
@@ -29,12 +32,18 @@ function registrationCtrl($scope, $log, $location, Restangular){
 					$scope.isError = true;
 					$scope.errors = result.errors;
 					$location.hash('errorBlock');
+					$scope.refreshCaptchaImage();
 				}
 			},
 			function error(reason) {
 				$scope.erorrs = [{"message" : "${communicationError}"}];
 			}
 		);
+	}
+	
+	// Refresh captcha image
+	$scope.refreshCaptchaImage=function() {
+		$scope.captchaImage = "/session/captcha.png?time=" + new Date();
 	}
 }
 
