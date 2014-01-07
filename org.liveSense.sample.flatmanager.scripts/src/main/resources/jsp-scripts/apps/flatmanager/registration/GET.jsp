@@ -180,7 +180,7 @@
 
 						<div class="control-group">
 							<label class="control-label" for="inputIcon">
-							<img ng-click="refreshCaptchaImage($event.target)" id="captchaImage" ng-src="{{captchaImage}}"/></label>
+							<img ng-click="refreshCaptchaImage()" id="captchaImage" ng-src="{{captchaImage}}"/></label>
 							<div class="controls">
 								<div class="input-prepend">
 									<span class="add-on"><i class="icon-magic"></i></span>
