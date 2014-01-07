@@ -148,7 +148,7 @@
 
 		<dependency>
 			<groupId>com.github.livesense</groupId>
-			<artifactId>org.liveSense.scripting.jsp.taglib.json</artifactId>
+			<artifactId>org.liveSense.scripting.jsp.taglib.jsonatg</artifactId>
 		</dependency>
 
 		<dependency>

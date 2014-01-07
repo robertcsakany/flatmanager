@@ -19,7 +19,7 @@
                 <module>org.liveSense.sample.flatmanager.i18n</module>
                 <module>org.liveSense.sample.flatmanager.scripts</module>
                 <module>org.liveSense.sample.flatmanager.server.rest</module>
-                <module>org.liveSense.sample.flatmanager.jcr.loginpage</module>
+                <module>org.liveSense.sample.flatmanager.loginpage</module>
 			</modules>
 		</profile>
 	</profiles>

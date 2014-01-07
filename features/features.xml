@@ -17,9 +17,10 @@
 		<feature>liveSense-service-captcha</feature>
         <feature>liveSense-jcr-explorer</feature>
 
+        <!--
         <bundle>mvn:org.apache.sling.samples/org.apache.sling.samples.accessmanager.ui/0.9-SNAPSHOT</bundle>
         <bundle>mvn:org.apache.sling.samples/org.apache.sling.samples.usermanager.ui/0.9-SNAPSHOT</bundle>
-
+        -->
         <bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.jcr.loginpage/1.0.0-SNAPSHOT</bundle>
    		<bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.content/1.0.0-SNAPSHOT</bundle>
    		<bundle>mvn:com.github.livesense/org.liveSense.sample.flatmanager.i18n/1.0.0-SNAPSHOT</bundle>
